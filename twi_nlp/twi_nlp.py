@@ -10,6 +10,7 @@ import chardet
 # ✅ Download necessary NLTK resources
 nltk.download("punkt")
 nltk.download("wordnet")
+nltk.download("averaged_perceptron_tagger")
 
 # ✅ GitHub Raw URL for dataset (CORRECTED)
 DATASET_URL = "https://raw.githubusercontent.com/birdcoreone/NLP-python/main/data/twi_words.csv"
