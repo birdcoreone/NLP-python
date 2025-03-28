@@ -24,58 +24,40 @@ def detect_encoding(filepath):
 
 class TwiNLP:
     def __init__(self, filepath=None):
-        """Initialize the Twi NLP module with an optional dataset."""
-        
-        # ✅ Print the current working directory (Debugging)
-        print("📂 Current Working Directory:", os.getcwd())
+        """Initialize Twi NLP module with a dataset accessible online."""
 
-        # ✅ Set default dataset path (Absolute Path)
+        # ✅ If no file is specified, download it
         if filepath is None:
             filepath = os.path.join(os.getcwd(), "data", "twi_words.csv")
 
-        # ✅ Print file path being searched
-        print(f"🔍 Checking if dataset exists at: {filepath}")
-        print(f"🔍 Absolute Path: {os.path.abspath(filepath)}")
-
-        # ✅ Try loading the dataset locally first
         if not os.path.exists(filepath):
-            print("❌ Dataset not found locally. Attempting to download from GitHub...")
-            try:
-                urllib.request.urlretrieve(DATASET_URL, filepath)
-                print("✅ Download successful!")
-            except urllib.error.HTTPError as e:
-                print(f"⚠️ Failed to download dataset from GitHub (HTTP {e.code}). Skipping download.")
-            except urllib.error.URLError:
-                print("⚠️ Network error while trying to fetch dataset. Skipping download.")
+            print("Downloading dataset...")
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            urllib.request.urlretrieve(DATASET_URL, filepath)
 
-        # ✅ If file is STILL missing, alert the user but DO NOT crash
-        if not os.path.exists(filepath):
-            print(f"❌ Dataset missing: {filepath}. Please manually place it in the `data/` folder.")
-            # ✅ Instead of crashing, initialize empty variables to prevent errors
+        # ✅ Load dataset if available
+        if os.path.exists(filepath):
+            self.df = pd.read_csv(filepath)
+            self.translations = dict(zip(self.df['Twi'], self.df['English']))
+        else:
             self.df = None
-            self.words = []
             self.translations = {}
-            self.pos_tags = {}
-            self.lemmatizer = WordNetLemmatizer()
-            self.stemmer = PorterStemmer()
-            return  # ✅ Exit gracefully
-
-        # ✅ If dataset is found, load it
-        encoding = detect_encoding(filepath)
-        self.df = pd.read_csv(filepath, encoding=encoding)
-        self.words = self.df['Twi'].tolist()
-        self.translations = dict(zip(self.df['Twi'], self.df['English']))
-        self.pos_tags = dict(zip(self.df['Twi'], self.df['POS']))
-        self.lemmatizer = WordNetLemmatizer()
-        self.stemmer = PorterStemmer()
 
     def translate(self, word):
         """Translate a Twi word to English."""
         return self.translations.get(word, "Translation not found")
 
     def get_pos(self, word):
-        """Get the POS tag of a Twi word."""
-        return self.pos_tags.get(word, "POS not found")
+        """Automatically tag POS by first translating to English, then tagging with NLTK."""
+        english_translation = self.translate(word)
+
+        if english_translation == "Translation not found":
+            return "POS not found"
+            
+        tokens = word_tokenize(english_translation)
+        pos_tags = pos_tag(tokens)
+
+        return pos_tags
 
     def search(self, keyword):
         """Search for words containing the keyword."""
@@ -98,18 +80,6 @@ class TwiNLP:
 
         return {"Stemmed": stemmed, "Lemmatized": lemmatized, "Twi Equivalent": english_translation}
 
-    def load_dataset(self, filepath):
-        """Allows users to load a dataset manually."""
-        encoding = detect_encoding(filepath)
-        self.df = pd.read_csv(filepath, encoding=encoding)
-        self.words = self.df['Twi'].tolist()
-        self.translations = dict(zip(self.df['Twi'], self.df['English']))
-        self.pos_tags = dict(zip(self.df['Twi'], self.df['POS']))
+    
 
-# ✅ Example Usage
-def main():
-    twi_nlp = TwiNLP()
-    print(twi_nlp.stem_and_lemmatize("yɛbɛkɔ"))
 
-if __name__ == "__main__":
-    main()
