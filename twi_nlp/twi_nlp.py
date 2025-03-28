@@ -13,7 +13,7 @@ nltk.download("wordnet")
 nltk.download("averaged_perceptron_tagger")
 
 # ✅ GitHub Raw URL for dataset (CORRECTED)
-DATASET_URL = "https://raw.githubusercontent.com/birdcoreone/NLP-python/main/data/twi_words.csv"
+DATASET_URL = "https://raw.githubusercontent.com/birdcoreone/NLP-python/master/twi_nlp/data/twi_words.csv"
 DEFAULT_FILEPATH = "data/twi_words.csv"
 
 def detect_encoding(filepath):
